@@ -1,21 +1,37 @@
 # builder
 FROM rust:latest as builder
-WORKDIR /usr/src/simple_api
+WORKDIR /usr/src/rust-read-manga
 
 # Copy manifest and source
-COPY ./simple_api/Cargo.toml ./
-COPY ./simple_api/Cargo.lock ./
-COPY ./simple_api/src ./src
+COPY ./rust-read-manga/Cargo.toml ./
+COPY ./rust-read-manga/Cargo.lock ./
+COPY ./rust-read-manga/src ./src
 
-# Build in release
-RUN cargo build --release
+# Install FFmpeg dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
+    libavdevice-dev \
+    libavfilter-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build in release with all features
+RUN cargo build --release --all-features
 
 # Runtime image
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/src/simple_api/target/release/simple_api /usr/local/bin/simple_api
+COPY --from=builder /usr/src/rust-read-manga/target/release/rust-read-manga /usr/local/bin/rust-read-manga
 
 ENV RUST_LOG=info
 EXPOSE 8080
-CMD ["/usr/local/bin/simple_api"]
+CMD ["/usr/local/bin/rust-read-manga"]

@@ -1,30 +1,63 @@
-// Declare the modules we created
-mod cli;
-mod converter;
-mod error;
-
-// Import the argument parser
+use anyhow::Result;
 use clap::Parser;
-use cli::CliArgs;
+use rust_read_manga::{
+    cli::CliArgs,
+    config::{
+        load_config,
+        models::{AppConfig, Resolution, VideoCodec},
+    },
+    converter::run_conversion,
+    plugins,
+    utils::logging::init_logging,
+};
 
-fn main() {
-    // 1. Parse command-line arguments
+fn main() -> Result<()> {
+    init_logging();
     let args = CliArgs::parse();
+    run(args)
+}
 
-    // You can print the parsed args to test:
-    // println!("Input directory: {:?}", args.input_dir);
-    // println!("Output file: {:?}", args.output_file);
-    // println!("Duration per image: {}s", args.duration);
+fn run(args: CliArgs) -> Result<()> {
+    let mut config = if let Some(config_path) = args.config.as_ref() {
+        load_config(config_path.to_str().unwrap())?
+    } else {
+        AppConfig::default()
+    };
 
-    // 2. Call the main conversion logic
-    // We'll pass the parsed 'args' to our converter
-    println!("Starting conversion...");
-    
-    // Use 'if let Err' to catch and print any errors from the converter
-    if let Err(e) = converter::run_conversion(args) {
-        eprintln!("Application error: {}", e);
-        std::process::exit(1);
+    if let Some(codec_str) = &args.codec {
+        config.video.codec = match codec_str.to_lowercase().as_str() {
+            "h264" => VideoCodec::H264,
+            "h265" => VideoCodec::H265,
+            "vp9" => VideoCodec::Vp9,
+            "theora" => VideoCodec::Theora,
+            _ => return Err(anyhow::anyhow!("Invalid codec")),
+        };
     }
 
-    println!("Conversion finished successfully!");
+    if let Some(resolution_str) = &args.resolution {
+        let parts: Vec<&str> = resolution_str.split('x').collect();
+        if parts.len() != 2 {
+            return Err(anyhow::anyhow!(
+                "Invalid resolution format. Use 'widthxheight'"
+            ));
+        }
+        config.video.resolution = Resolution {
+            width: parts[0].parse()?,
+            height: parts[1].parse()?,
+        };
+    }
+
+    if let Some(fps) = args.fps {
+        config.video.fps = fps;
+    }
+
+    if let Some(bitrate) = args.bitrate {
+        config.video.bitrate_kbps = bitrate;
+    }
+
+    let plugins = plugins::load_plugins(&config.plugins)?;
+
+    run_conversion(args, config, plugins)?;
+
+    Ok(())
 }

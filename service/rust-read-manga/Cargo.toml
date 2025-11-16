@@ -4,7 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.86"
 clap = { version = "4.5.51", features = ["derive"] }
 ffmpeg-next = "8.0.0"
-image = "0.25.8"
+image = "0.25.9"
+libloading = "0.8.3"
 rayon = "1.11.0"
+rhai = { version = "1.18.0", features = ["full"] }
+serde = { version = "1.0.203", features = ["derive"] }
+toml = "0.8.13"
+
+[features]
+default = ["video-encoding", "image-processing", "parallel-processing"]
+video-encoding = []
+image-processing = []
+parallel-processing = []
+all = ["video-encoding", "image-processing", "parallel-processing"]

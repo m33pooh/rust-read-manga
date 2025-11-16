@@ -13,16 +13,23 @@ pub struct CliArgs {
     #[arg(short = 'o', long, required = true)]
     pub output_file: PathBuf,
 
-    /// Duration (in seconds) to display each image.
-    #[arg(short = 'd', long, default_value_t = 5.0)]
-    pub duration: f64,
+    /// Optional: Path to a custom TOML configuration file.
+    #[arg(short = 'c', long)]
+    pub config: Option<PathBuf>,
 
-    /// Optional: Video codec to use (e.g., "libx264").
-    #[arg(short = 'c', long, default_value = "libx264")]
-    pub codec: String,
+    /// Optional: Video codec (h264, h265, vp9, theora).
+    #[arg(long)]
+    pub codec: Option<String>,
 
-    /// Optional: Output resolution (e.g., "1920x1080").
-    /// If not set, uses the resolution of the first image.
-    #[arg(short = 'r', long)]
+    /// Optional: Video resolution (e.g., "1920x1080").
+    #[arg(long)]
     pub resolution: Option<String>,
+
+    /// Optional: Frames per second.
+    #[arg(long)]
+    pub fps: Option<u32>,
+
+    /// Optional: Video bitrate in kbps.
+    #[arg(long)]
+    pub bitrate: Option<u32>,
 }
