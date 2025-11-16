@@ -26,4 +26,13 @@ pub fn build_cli() -> Command {
                         .required(true)
                 )
         )
+        .subcommand(
+            Command::new("workflow")
+                .about("Run a workflow file")
+                .arg(
+                    Arg::new("file")
+                        .help("Path to the workflow file")
+                        .required(true)
+                )
+        )
 }

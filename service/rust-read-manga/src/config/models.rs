@@ -85,9 +85,13 @@ pub struct Resolution {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TimingConfig {
-    pub mode: TimingMode,
+    pub mode: CountMode,
+    #[serde(default)]
+    pub curve: TimingCurve,
     pub reading_speed_wpm: Option<u32>,
-    pub reading_speed_cps: Option<u32>,
+    pub reading_speed_cpm: Option<u32>,
+    pub weight_words: Option<f32>,
+    pub weight_chars: Option<f32>,
     pub min_duration_sec: f32,
     pub max_duration_sec: f32,
     pub base_time_sec: f32,
@@ -97,11 +101,14 @@ pub struct TimingConfig {
 impl Default for TimingConfig {
     fn default() -> Self {
         Self {
-            mode: TimingMode::Auto,
+            mode: CountMode::Words,
+            curve: TimingCurve::default(),
             reading_speed_wpm: Some(180),
-            reading_speed_cps: Some(12),
-            min_duration_sec: 1.0,
-            max_duration_sec: 15.0,
+            reading_speed_cpm: Some(180 * 5), // Average word length is 5 chars
+            weight_words: Some(0.5),
+            weight_chars: Some(0.5),
+            min_duration_sec: 2.0,
+            max_duration_sec: 10.0,
             base_time_sec: 0.5,
             custom_formula: None,
         }
@@ -110,10 +117,19 @@ impl Default for TimingConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
-pub enum TimingMode {
+pub enum CountMode {
     Words,
     Chars,
-    Auto,
+    Mixed,
     Custom,
+}
+
+#[derive(Debug, Deserialize, Clone, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum TimingCurve {
+    #[default]
+    Linear,
+    Log,
+    Sqrt,
 }
 

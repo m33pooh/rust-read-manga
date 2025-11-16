@@ -21,3 +21,12 @@ CREATE TABLE todos (
     description TEXT,
     status status DEFAULT 'Todo'
 );
+
+CREATE TABLE workflow_steps (
+    id SERIAL PRIMARY KEY,
+    workflow_id VARCHAR(255) NOT NULL,
+    step_name VARCHAR(255) NOT NULL,
+    page_number INTEGER,
+    data JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

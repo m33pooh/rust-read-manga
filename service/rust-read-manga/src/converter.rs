@@ -1,8 +1,8 @@
-use crate::cli::CliArgs;
-use crate::config::models::{AppConfig, TimingConfig, VideoConfig};
+use crate::config::models::AppConfig;
 use crate::duration;
 use crate::error::AppError;
 use crate::ocr;
+use crate::plugins::PluginManager;
 use crate::video;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,17 +12,18 @@ const ALLOWED_EXTENSIONS: [&str; 3] = ["png", "jpg", "jpeg"];
 
 pub struct VideoConverter {
     config: AppConfig,
+    plugins: PluginManager,
 }
 
 impl VideoConverter {
-    pub fn new(config: AppConfig) -> Self {
-        Self { config }
+    pub fn new(config: AppConfig, plugins: PluginManager) -> Self {
+        Self { config, plugins }
     }
 
-    pub fn run(&self, args: CliArgs) -> Result<(), AppError> {
-        let image_paths = self.scan_images(&args.input_dir)?;
+    pub fn run(&self, input_dir: &Path, output_file: &Path) -> Result<(), AppError> {
+        let image_paths = self.scan_images(input_dir)?;
         let timeline = self.generate_timeline(&image_paths)?;
-        self.encode_video(&timeline, &args.output_file)?;
+        self.encode_video(&timeline, output_file)?;
         Ok(())
     }
 
@@ -51,7 +52,10 @@ impl VideoConverter {
         Ok(image_paths)
     }
 
-    fn generate_timeline(&self, image_paths: &[PathBuf]) -> Result<video::timeline::Timeline, AppError> {
+    fn generate_timeline(
+        &self,
+        image_paths: &[PathBuf],
+    ) -> Result<video::timeline::Timeline, AppError> {
         let ocr_engine = ocr::engine::OcrEngine::new();
         let duration_engine = duration::engine::DurationEngine::new(self.config.timing.clone());
         let mut timeline = video::timeline::Timeline::new();
@@ -68,7 +72,11 @@ impl VideoConverter {
         Ok(timeline)
     }
 
-    fn encode_video(&self, timeline: &video::timeline::Timeline, output_file: &Path) -> Result<(), AppError> {
+    fn encode_video(
+        &self,
+        timeline: &video::timeline::Timeline,
+        output_file: &Path,
+    ) -> Result<(), AppError> {
         println!("\nStarting video encoding...");
 
         let video_config = &self.config.video;
@@ -78,7 +86,13 @@ impl VideoConverter {
         let concat_file_content = timeline
             .frames
             .iter()
-            .map(|frame| format!("file '{}'\nduration {}", frame.image_path.to_str().unwrap(), frame.duration_sec))
+            .map(|frame| {
+                format!(
+                    "file '{}'\nduration {}",
+                    frame.image_path.to_str().unwrap(),
+                    frame.duration_sec
+                )
+            })
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -125,7 +139,12 @@ impl VideoConverter {
     }
 }
 
-pub fn run_conversion(args: CliArgs, config: AppConfig) -> Result<(), AppError> {
-    let converter = VideoConverter::new(config);
-    converter.run(args)
+pub fn run_conversion(
+    input_dir: &Path,
+    output_file: &Path,
+    config: AppConfig,
+    plugins: PluginManager,
+) -> Result<(), AppError> {
+    let converter = VideoConverter::new(config, plugins);
+    converter.run(input_dir, output_file)
 }

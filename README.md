@@ -11,8 +11,37 @@
 - [Usage](#usage)
 - [Node Workflow System](#node-workflow-system)
 - [Smart Page Duration Engine](#smart-page-duration-engine)
-- [Database Persistence](#database-persistence)
 - [Contributing](#contributing)
+
+---
+## Workflow Diagram
+
+The following diagram illustrates the **Rust Read Manga node-based workflow**:
+
+```mermaid
+flowchart TD
+    A[Input Node<br/>Load Images] --> B[Image Nodes<br/>Preprocessing, Filters, Upscaling]
+    B --> C[Text Nodes<br/>OCR, Text Density]
+    C --> D[Timing Nodes<br/>Page Duration Calculation]
+    D --> E[Video Nodes<br/>Transitions, Encoding, Audio Sync]
+    E --> F[Output Nodes<br/>Export Video, Logs]
+    C --> G[Logic Nodes<br/>Conditional Routing, Merging]
+    G --> E
+    D --> H[Utility Nodes<br/>Counters, Timers, Random Values]
+```
+
+### Diagram Explanation
+
+1. **Input Node**: Loads manga images from a directory.
+2. **Image Nodes**: Preprocess images (contrast, watermark removal, upscaling).
+3. **Text Nodes**: Perform OCR, calculate text density.
+4. **Timing Nodes**: Calculate page durations based on text content.
+5. **Video Nodes**: Apply transitions, combine frames, encode video.
+6. **Logic Nodes**: Conditional flows for advanced branching.
+7. **Utility Nodes**: Counters, timers, random values for dynamic behavior.
+8. **Output Nodes**: Export final video and logs.
+
+> This structure allows **resumable, debuggable, and highly flexible workflows** similar to n8n.
 
 ---
 
@@ -126,12 +155,13 @@ Automatically calculates **how long each manga page remains on screen** using:
 
 ---
 
-## Database Persistence
+## Planned Features
 
-Rust Read Manga can **save intermediate workflow steps to PostgreSQL**, allowing:
+### Database Persistence
+Rust Read Manga will be able to **save intermediate workflow steps to PostgreSQL**, allowing:
 
 - Workflow resuming
 - Debugging and auditing
 - Analytics on node outputs
 
-> See [SAVE_STEPS_POSTGRES.md](docs/SAVE_STEPS_POSTGRES.md) for
+> See [SAVE_STEPS_POSTGRES.md](docs/SAVE_STEPS_POSTGRES.md) for the original plan.

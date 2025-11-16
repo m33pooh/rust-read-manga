@@ -1,0 +1,49 @@
+[node.input_loader]
+path = "manga/chapter1"
+recursive = true
+sort_order = "natural"
+extensions = ["jpg", "png"]
+
+[node.image_preprocess]
+auto_contrast = true
+normalize = true
+resize = "1920x1080"
+grayscale = false
+denoise_level = 10
+
+[node.ocr]
+engine = "tesseract"
+language = "jpn"
+min_confidence = 0.75
+scale_before_ocr = true
+detect_bubbles = false
+
+[node.duration]
+reading_speed_wpm = 180
+min_seconds = 2.0
+max_seconds = 8.0
+base_time = 0.5
+curve = "sqrt"
+
+[node.encoder]
+codec = "h264"
+fps = 30
+resolution = "1920x1080"
+bitrate = 5000
+crf = 23
+
+[node.transition]
+type = "fade"
+duration = 0.4
+ease = "ease_in_out"
+
+[node.audio]
+source = "bgm/music.mp3"
+volume = 1.0
+sync_to_pages = true
+loop = true
+
+[node.output_writer]
+output_path = "output/chapter1.mp4"
+overwrite = true
+create_dirs = true

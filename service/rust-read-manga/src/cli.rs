@@ -6,16 +6,20 @@ use std::path::PathBuf;
 #[command(version, about, long_about = None)]
 pub struct CliArgs {
     /// Path to the input directory containing image files.
-    #[arg(short = 'i', long, required = true)]
-    pub input_dir: PathBuf,
+    #[arg(short = 'i', long, required_unless_present = "workflow")]
+    pub input_dir: Option<PathBuf>,
 
     /// Path for the output video file.
-    #[arg(short = 'o', long, required = true)]
-    pub output_file: PathBuf,
+    #[arg(short = 'o', long, required_unless_present = "workflow")]
+    pub output_file: Option<PathBuf>,
 
     /// Optional: Path to a custom TOML configuration file.
     #[arg(short = 'c', long)]
     pub config: Option<PathBuf>,
+
+    /// Optional: Path to a workflow file.
+    #[arg(short = 'w', long)]
+    pub workflow: Option<PathBuf>,
 
     /// Optional: Video codec (h264, h265, vp9, theora).
     #[arg(long)]

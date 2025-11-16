@@ -40,6 +40,41 @@ You can pass parameters via command line or config file:
 - Batch processing (multiple manga / chapters)  
 
 ## Extensibility
+
 - Plugin architecture  
+
 - Custom scripting  
+
 - API / Config file integration  
+
+
+
+## Node Workflow System
+
+- **Node-based workflows** for flexible processing pipelines.
+
+- Similar to n8n, allowing you to connect different processing steps (nodes).
+
+- **Nodes for**: Input, Image Processing, OCR, Timing, Video Encoding, and Output.
+
+- Conditional routing and branching for complex workflows.
+
+
+
+## Smart Page Duration Engine
+
+- Automatically calculates page display duration based on **text content**.
+
+- Uses OCR to determine the amount of text on a page.
+
+- Configurable **reading speed** (words per minute or characters per second).
+
+- Set minimum and maximum duration constraints for pages.
+
+
+
+## Planned Features
+
+- **Database Persistence**: Save workflow state and results to a database (e.g., PostgreSQL) for resumable workflows and analytics.
+
+  

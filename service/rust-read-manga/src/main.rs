@@ -1,63 +1,35 @@
 use anyhow::Result;
 use clap::Parser;
 use rust_read_manga::{
-    cli::CliArgs,
-    config::{
-        load_config,
-        models::{AppConfig, Resolution, VideoCodec},
-    },
-    converter::run_conversion,
-    plugins,
+    cli::{Cli, Commands},
+    database,
     utils::logging::init_logging,
+    workflow::engine::WorkflowEngine,
 };
+use uuid::Uuid;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     init_logging();
-    let args = CliArgs::parse();
-    run(args)
-}
+    let cli = Cli::parse();
 
-fn run(args: CliArgs) -> Result<()> {
-    let mut config = if let Some(config_path) = args.config.as_ref() {
-        load_config(config_path.to_str().unwrap())?
-    } else {
-        AppConfig::default()
-    };
-
-    if let Some(codec_str) = &args.codec {
-        config.video.codec = match codec_str.to_lowercase().as_str() {
-            "h264" => VideoCodec::H264,
-            "h265" => VideoCodec::H265,
-            "vp9" => VideoCodec::Vp9,
-            "theora" => VideoCodec::Theora,
-            _ => return Err(anyhow::anyhow!("Invalid codec")),
-        };
-    }
-
-    if let Some(resolution_str) = &args.resolution {
-        let parts: Vec<&str> = resolution_str.split('x').collect();
-        if parts.len() != 2 {
-            return Err(anyhow::anyhow!(
-                "Invalid resolution format. Use 'widthxheight'"
-            ));
+    match cli.command {
+        Commands::Workflow { file } => {
+            let workflow_id = Uuid::new_v4().to_string();
+            let db_client = database::client::connect(
+                "host=localhost user=postgres password=secret dbname=manga_workflow",
+            )
+            .await?;
+            let engine = WorkflowEngine::new(&file, &workflow_id, db_client);
+            engine.run().await?;
         }
-        config.video.resolution = Resolution {
-            width: parts[0].parse()?,
-            height: parts[1].parse()?,
-        };
+        Commands::Convert { .. } => {
+            println!("'convert' command is not implemented yet");
+        }
+        Commands::Batch { .. } => {
+            println!("'batch' command is not implemented yet");
+        }
     }
-
-    if let Some(fps) = args.fps {
-        config.video.fps = fps;
-    }
-
-    if let Some(bitrate) = args.bitrate {
-        config.video.bitrate_kbps = bitrate;
-    }
-
-    let plugins = plugins::load_plugins(&config.plugins)?;
-
-    run_conversion(args, config, plugins)?;
 
     Ok(())
 }

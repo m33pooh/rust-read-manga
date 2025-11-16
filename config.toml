@@ -1,0 +1,10 @@
+[node.image_preprocess]
+auto_contrast = false
+normalize = false
+resize = "1280x720"
+grayscale = true
+
+[node.encoder]
+codec = "h265"
+fps = 30
+crf = 28

@@ -1,0 +1,25 @@
+[node.input_loader]
+path = "test://dummy"
+extensions = ["png"]
+
+[node.image_preprocess]
+grayscale = true
+resize = "800x600"
+
+[node.ocr]
+language = "eng"
+
+[node.duration]
+reading_speed_wpm = 200
+min_seconds = 1.0
+max_seconds = 5.0
+
+[node.output_writer]
+output_path = "output/test.mp4"
+create_dirs = true
+
+[node.encoder]
+codec = "h264"
+fps = 24
+resolution = "800x600"
+crf = 25

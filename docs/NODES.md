@@ -1,44 +1,28 @@
 # Node Documentation
 
-This section describes all the nodes available in the **Rust Read Manga workflow**. Nodes are split into categories for clarity.
+This section describes all the nodes available in the **Rust Read Manga workflow**.
 
 ## Table of Contents
 
 ### Input Nodes
-- [Input Loader Node](nodes/00-Input-Nodes.md) – Loads images from directories.
+- [Input Loader](nodes/00-Input-Nodes.md) – Loads images from a directory.
 
 ### Image Processing Nodes
-- [Image Preprocessor Node](nodes/01-Image-Nodes.md) – Basic cleanup and normalization.
-- [Image Filter Node](nodes/01-Image-Nodes.md) – Apply visual filters.
-- [Upscale Node](nodes/01-Image-Nodes.md) – AI or interpolation upscaling.
-- [Watermark Removal Node](nodes/01-Image-Nodes.md) – Remove watermarks from images.
+- [Image Preprocessor](nodes/01-Image-Nodes.md) – Performs basic image cleanup and normalization.
 
 ### Text Nodes
-- [OCR Analyzer Node](nodes/02-Text-Nodes.md) – Extract text via OCR.
-- [Text Density Calculator Node](nodes/02-Text-Nodes.md) – Compute text density metrics.
+- [OCR Analyzer](nodes/02-Text-Nodes.md) – Extracts text from images using OCR.
 
 ### Timing Nodes
-- [Page Duration Calculator Node](nodes/03-Timing-Nodes.md) – Compute page durations based on text.
+- [Page Duration Calculator](nodes/03-Timing-Nodes.md) – Computes page display durations.
 
 ### Video Nodes
-- [Video Encoder Node](nodes/04-Video-Nodes.md) – Encodes final video.
-- [Transition Node](nodes/04-Video-Nodes.md) – Adds page transitions.
-- [Audio Node](nodes/04-Video-Nodes.md) – Adds or syncs background audio.
+- [Video Encoder](nodes/04-Video-Nodes.md) – Encodes the final video file.
+- [Transition](nodes/04-Video-Nodes.md) – Adds transitions between pages.
+- [Audio](nodes/04-Video-Nodes.md) – Adds a background audio track.
 
 ### Output Nodes
-- [Video Export Node](nodes/05-Output-Nodes.md) – Writes video to disk.
-- [Log Node](nodes/05-Output-Nodes.md) – Logs workflow events.
-
-### Logic Nodes
-- [Conditional Node](nodes/06-Logic-Nodes.md) – Routes workflow based on conditions.
-- [Switch Node](nodes/06-Logic-Nodes.md) – Multi-case routing.
-- [Merge Node](nodes/06-Logic-Nodes.md) – Merges multiple inputs.
-
-### Utility Nodes
-- [Timer Node](nodes/07-Utility-Nodes.md) – Adds delays.
-- [Logger Node](nodes/07-Utility-Nodes.md) – Logs messages or variables.
-- [Random Node](nodes/07-Utility-Nodes.md) – Generates random values.
-- [Counter Node](nodes/07-Utility-Nodes.md) – Tracks incremental counts.
+- [Video Exporter](nodes/05-Output-Nodes.md) – Writes the final video to disk.
 
 ---
 
