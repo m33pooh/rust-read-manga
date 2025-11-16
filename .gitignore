@@ -1,0 +1,4 @@
+service/target/**
+service/rust-read-manga/target/**
+service/rust-read-manga/Cargo.lock
+**/target/**
