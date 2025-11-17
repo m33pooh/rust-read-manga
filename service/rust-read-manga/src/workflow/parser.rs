@@ -63,7 +63,7 @@ mod tests {
         merge_values(&mut base_value, &override_value);
 
         let merged: WorkflowFile = base_value.try_into().unwrap();
-        let encoder_node = &merged.node[0].1;
+        let encoder_node = &merged.node.get("encoder").unwrap();
 
         if let NodeType::Encoder(encoder) = encoder_node {
             assert_eq!(encoder.codec, crate::workflow::node_type::VideoCodec::H264);

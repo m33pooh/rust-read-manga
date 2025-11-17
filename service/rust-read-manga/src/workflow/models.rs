@@ -10,7 +10,7 @@ use serde_with::serde_as;
 #[derive(Debug, Deserialize)]
 pub struct WorkflowFile {
     #[serde_as(as = "IndexMap<_, _>")]
-    pub nodes: IndexMap<String, NodeType>,
+    pub node: IndexMap<String, NodeType>,
 }
 
 #[derive(Debug)]

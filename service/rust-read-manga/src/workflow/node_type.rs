@@ -1,7 +1,7 @@
 
 use crate::workflow::context::Context;
 use anyhow::{anyhow, Result};
-use ffmpeg_sidecar::command::ffmpeg_is_installed;
+use ffmpeg_sidecar::command::{ffmpeg_is_installed, FfmpegCommand};
 use glob::glob;
 use image::{imageops, DynamicImage};
 use serde::Deserialize;
@@ -12,7 +12,7 @@ use async_trait::async_trait;
 
 #[async_trait]
 pub trait Node {
-    async fn run(&self, context: &mut Context) -> Result<()>;
+    async fn run(&self, context: Context) -> Result<Context>;
 }
 
 #[derive(Debug, Deserialize, Default, PartialEq, Eq)]
@@ -37,7 +37,7 @@ pub struct InputLoaderNode {
 }
 
 impl Node for InputLoaderNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
+    async fn run(&self, mut context: Context) -> Result<Context> {
         let mut files: Vec<String> = Vec::new();
 
         if self.path == "test://dummy" {
@@ -59,8 +59,8 @@ impl Node for InputLoaderNode {
                 files.push(entry?.to_str().map(|s| s.to_string()).ok_or_else(|| anyhow!("Invalid UTF-8 path"))?);
             }
         }
-        context.set("files", files);
-        Ok(())
+        context.set("files", files)?;
+        Ok(context)
     }
 }
 
@@ -79,7 +79,7 @@ pub struct ImagePreprocessNode {
 }
 
 impl Node for ImagePreprocessNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
+    async fn run(&self, mut context: Context) -> Result<Context> {
         let files = context
             .get::<Vec<String>>("files")
             .ok_or_else(|| anyhow!("No files in context"))?
@@ -125,8 +125,8 @@ impl Node for ImagePreprocessNode {
             processed_files.push(new_path.to_str().unwrap().to_string());
         }
 
-        context.set("files", processed_files);
-        Ok(())
+        context.set("files", processed_files)?;
+        Ok(context)
     }
 }
 
@@ -152,7 +152,7 @@ pub struct OcrNode {
 }
 
 impl Node for OcrNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
+    async fn run(&self, mut context: Context) -> Result<Context> {
         let files = context
             .get::<Vec<String>>("files")
             .ok_or_else(|| anyhow!("No files in context"))?
@@ -167,8 +167,8 @@ impl Node for OcrNode {
             ocr_results.push(text);
         }
 
-        context.set("ocr_results", ocr_results);
-        Ok(())
+        context.set("ocr_results", ocr_results)?;
+        Ok(context)
     }
 }
 
@@ -196,7 +196,7 @@ pub struct DurationNode {
 }
 
 impl Node for DurationNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
+    async fn run(&self, mut context: Context) -> Result<Context> {
         let ocr_results = context
             .get::<Vec<String>>("ocr_results")
             .ok_or_else(|| anyhow!("No ocr_results in context"))?
@@ -222,8 +222,8 @@ impl Node for DurationNode {
             durations.push(duration);
         }
 
-        context.set("durations", durations);
-        Ok(())
+        context.set("durations", durations)?;
+        Ok(context)
     }
 }
 
@@ -250,7 +250,7 @@ pub struct EncoderNode {
 }
 
 impl Node for EncoderNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
+    async fn run(&self, context: Context) -> Result<Context> {
         if !ffmpeg_is_installed() {
             return Err(anyhow!("FFmpeg is not installed. Please install FFmpeg and ensure it is in your system's PATH."));
         }
@@ -268,7 +268,7 @@ impl Node for EncoderNode {
             .ok_or_else(|| anyhow!("No output_path in context"))?
             .clone();
 
-        let mut command = ffmpeg_sidecar::command();
+        let mut command = FfmpegCommand::new();
 
         if let Some(transition_type) = context.get::<TransitionType>("transition_type") {
             let transition_duration = context.get::<f32>("transition_duration").unwrap_or(0.5);
@@ -385,7 +385,7 @@ impl Node for EncoderNode {
 
         command.spawn()?.wait()?;
 
-        Ok(())
+        Ok(context)
     }
 }
 
@@ -427,11 +427,11 @@ pub struct TransitionNode {
 }
 
 impl Node for TransitionNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
-        context.set("transition_type", self.transition_type);
-        context.set("transition_duration", self.duration);
-        context.set("transition_ease", self.ease);
-        Ok(())
+    async fn run(&self, mut context: Context) -> Result<Context> {
+        context.set("transition_type", self.transition_type)?;
+        context.set("transition_duration", self.duration)?;
+        context.set("transition_ease", self.ease)?;
+        Ok(context)
     }
 }
 
@@ -448,12 +448,12 @@ pub struct AudioNode {
 }
 
 impl Node for AudioNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
-        context.set("audio_source", self.source.clone());
-        context.set("volume", self.volume);
-        context.set("sync_to_pages", self.sync_to_pages);
-        context.set("loop_audio", self.loop_audio);
-        Ok(())
+    async fn run(&self, mut context: Context) -> Result<Context> {
+        context.set("audio_source", self.source.clone())?;
+        context.set("volume", self.volume)?;
+        context.set("sync_to_pages", self.sync_to_pages)?;
+        context.set("loop_audio", self.loop_audio)?;
+        Ok(context)
     }
 }
 
@@ -467,14 +467,14 @@ pub struct OutputWriterNode {
 }
 
 impl Node for OutputWriterNode {
-    async fn run(&self, context: &mut Context) -> Result<()> {
-        context.set("output_path", self.output_path.clone());
+    async fn run(&self, mut context: Context) -> Result<Context> {
+        context.set("output_path", self.output_path.clone())?;
         if self.create_dirs {
             let path = std::path::Path::new(&self.output_path);
             if let Some(parent) = path.parent() {
                 std::fs::create_dir_all(parent)?;
             }
         }
-        Ok(())
+        Ok(context)
     }
 }
