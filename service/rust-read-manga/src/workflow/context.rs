@@ -1,18 +1,18 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, de::DeserializeOwned};
 use serde::Serialize;
-use serde_json::Value;
-use std::collections::HashMap;
+use serde_json::{Value, Map}; // <-- 1. Import Map
+// std::collections::HashMap is no longer needed for `data`
 
 #[derive(Serialize, Deserialize)]
 pub struct Context {
-    data: HashMap<String, Value>,
+    data: Map<String, Value>, // <-- 2. Change HashMap to Map
 }
 
 impl Context {
     pub fn new() -> Self {
         Self {
-            data: HashMap::new(),
+            data: Map::new(), // <-- 3. Change HashMap::new to Map::new
         }
     }
 
@@ -23,7 +23,7 @@ impl Context {
     }
 
     pub fn get<T: DeserializeOwned>(&self, path: &str) -> Option<T> {
-        let mut current = &self.data;
+        let mut current = &self.data; // <-- This is now type `&Map<String, Value>`
         let mut parts = path.split('.');
         let key = parts.next_back()?;
         let mut value: Option<&Value> = None;
@@ -31,7 +31,7 @@ impl Context {
         for part in parts {
             if let Some(v) = current.get(part) {
                 if v.is_object() {
-                    current = v.as_object().unwrap();
+                    current = v.as_object().unwrap(); // <-- This line now works
                 } else {
                     return None;
                 }

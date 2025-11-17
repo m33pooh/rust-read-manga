@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use std::path::Path;
+
 
 /// Represents the OCR engine responsible for extracting text from images.
 pub struct OcrEngine;

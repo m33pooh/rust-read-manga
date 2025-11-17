@@ -1,4 +1,5 @@
 use crate::config::ScriptingConfig;
+use anyhow::Context; // <-- Add this use statement
 use rhai::{Engine, Scope};
 use std::fs;
 
@@ -18,8 +19,13 @@ pub fn run_script(config: &ScriptingConfig, script_name: &str, context: &mut Sco
     }
 
     let engine = Engine::new();
-    let script = fs::read_to_string(&script_path)?;
-    engine.run_with_scope(context, &script)?;
+    let script = fs::read_to_string(&script_path)
+        .with_context(|| format!("Failed to read script file: {}", script_path))?;
+
+    // This is the fix:
+    engine
+        .run_with_scope(context, &script)
+        .map_err(|e| anyhow::anyhow!("Rhai script execution failed for {}: {}", script_name, e))?;
 
     Ok(())
 }

@@ -6,6 +6,7 @@ use std::path::PathBuf;
 pub enum AppError {
     IoError(std::io::Error),
     NoImagesFound(PathBuf),
+    OcrError(String),
     // Add more specific errors later:
     // ImageDecodeError(String),
     // VideoEncodeError(String),
@@ -21,7 +22,8 @@ impl fmt::Display for AppError {
             AppError::IoError(e) => write!(f, "IO Error: {}", e),
             AppError::NoImagesFound(path) => {
                 write!(f, "No supported images (png, jpg) found in directory: {:?}", path)
-            }
+            },
+            AppError::OcrError(e) => write!(f, "OCR Error: {}", e),
         }
     }
 }

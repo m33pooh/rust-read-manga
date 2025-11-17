@@ -10,7 +10,7 @@ pub fn resolve_string(s: &str, context: &Context) -> Result<String> {
         let value = context
             .get::<String>(path)
             .ok_or_else(|| anyhow!("Value not found in context: {}", path))?;
-        result = result.replace(&cap[0], value);
+        result = result.replace(&cap[0], &value);
     }
     Ok(result)
 }

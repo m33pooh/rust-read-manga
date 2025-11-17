@@ -4,7 +4,7 @@ use std::fs;
 use toml::Value;
 
 fn merge_values(base: &mut Value, override_val: &Value) {
-    match (base, override_val) {
+    match (&mut *base, override_val) {
         (Value::Table(base_table), Value::Table(override_table)) => {
             for (key, override_value) in override_table {
                 if let Some(base_value) = base_table.get_mut(key) {
@@ -14,7 +14,7 @@ fn merge_values(base: &mut Value, override_val: &Value) {
                 }
             }
         }
-        _ => *base = override_val.clone(),
+        (base_val, _) => *base_val = override_val.clone(),
     }
 }
 

@@ -56,7 +56,7 @@ impl Node for InputLoaderNode {
             };
 
             for entry in glob(&path)? {
-                files.push(entry?.to_str().unwrap().to_string());
+                files.push(entry?.to_str().map(|s| s.to_string()).ok_or_else(|| anyhow!("Invalid UTF-8 path"))?);
             }
         }
         context.set("files", files);
@@ -97,20 +97,22 @@ impl Node for ImagePreprocessNode {
             }
             if self.normalize {
                 let luma_img = img.to_luma8();
-                let normalized = imageops::contrast::normalize(&luma_img);
+                let normalized = imageops::normalize(&luma_img);
                 img = DynamicImage::ImageLuma8(normalized);
             }
             if self.denoise_level > 0 {
-                img = imageops::blur(&img, self.denoise_level as f32);
+                img = DynamicImage::ImageRgba8(imageops::blur(&img, self.denoise_level as f32));
             }
             if !self.resize.is_empty() {
                 let dims: Vec<u32> = self
                     .resize
                     .split('x')
-                    .map(|s| s.parse().unwrap_or(0))
+                    .filter_map(|s| s.parse().ok())
                     .collect();
                 if dims.len() == 2 {
                     img = img.resize_exact(dims[0], dims[1], imageops::FilterType::Lanczos3);
+                } else {
+                    return Err(anyhow!("Invalid resize dimensions: {}", self.resize));
                 }
             }
 
@@ -203,7 +205,12 @@ impl Node for DurationNode {
 
         for text in ocr_results {
             let word_count = text.split_whitespace().count() as f32;
-            let mut duration = self.base_time + (word_count / self.reading_speed_wpm as f32) * 60.0;
+            let mut duration = self.base_time;
+
+            if self.reading_speed_wpm == 0 {
+                return Err(anyhow!("Reading speed (wpm) cannot be zero."));
+            }
+            duration += (word_count / self.reading_speed_wpm as f32) * 60.0;
 
             duration = match self.curve {
                 DurationCurve::Linear => duration,
@@ -244,7 +251,9 @@ pub struct EncoderNode {
 
 impl Node for EncoderNode {
     async fn run(&self, context: &mut Context) -> Result<()> {
-        ffmpeg_is_installed()?;
+        if !ffmpeg_is_installed() {
+            return Err(anyhow!("FFmpeg is not installed. Please install FFmpeg and ensure it is in your system's PATH."));
+        }
 
         let files = context
             .get::<Vec<String>>("files")
@@ -259,10 +268,10 @@ impl Node for EncoderNode {
             .ok_or_else(|| anyhow!("No output_path in context"))?
             .clone();
 
-        let mut command = ffmpeg_sidecar::command::Command::new();
+        let mut command = ffmpeg_sidecar::ffmpeg_command();
 
         if let Some(transition_type) = context.get::<TransitionType>("transition_type") {
-            let transition_duration = *context.get::<f32>("transition_duration").unwrap_or(&0.5);
+            let transition_duration = context.get::<f32>("transition_duration").unwrap_or(0.5);
             let transition_ease = context.get::<Ease>("transition_ease");
 
             let mut filter_complex = String::new();
@@ -273,7 +282,7 @@ impl Node for EncoderNode {
                 let d = durations[i] - if i > 0 { transition_duration } else { 0.0 };
                 filter_complex.push_str(&format!(
                     "[{i}:v]scale={},setsar=1,fade=t=in:st=0:d={}:alpha=1[v{i}];",
-                    self.resolution, transition_duration, d
+                    self.resolution, transition_duration
                 ));
             }
 
@@ -322,18 +331,18 @@ impl Node for EncoderNode {
                 .arg("-safe")
                 .arg("0")
                 .arg("-i")
-                .arg(input_file.path().to_str().unwrap());
+                .arg(input_file.path().to_str().ok_or_else(|| anyhow!("Invalid UTF-8 path for temporary file"))?);
         }
 
         if let Some(audio_source) = context.get::<String>("audio_source") {
             command.arg("-i").arg(audio_source);
             if let Some(loop_audio) = context.get::<bool>("loop_audio") {
-                if *loop_audio {
+                if loop_audio {
                     command.arg("-stream_loop").arg("-1");
                 }
             }
             if let Some(sync_to_pages) = context.get::<bool>("sync_to_pages") {
-                if *sync_to_pages {
+                if sync_to_pages {
                     command.arg("-shortest");
                 }
             }
@@ -380,7 +389,7 @@ impl Node for EncoderNode {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TransitionType {
     Fade,
@@ -396,7 +405,7 @@ impl Default for TransitionType {
     }
 }
 
-#[derive(Debug, Deserialize, Default, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Deserialize, Serialize, Default, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum Ease {
     #[default]

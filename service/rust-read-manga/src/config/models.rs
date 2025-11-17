@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Deserialize)]
 pub struct AppConfig {
     pub video: VideoConfig,
     pub timing: TimingConfig,

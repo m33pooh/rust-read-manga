@@ -27,7 +27,11 @@ pub fn load_plugins(config: &PluginsConfig) -> anyhow::Result<Vec<Box<dyn Plugin
                         if config.enabled.contains(&plugin.name().to_string()) {
                             plugins.push(plugin);
                         }
+                    } else {
+                        log::warn!("Failed to find _plugin_init symbol in {}: {:?}", path.display(), init_func.err().unwrap());
                     }
+                } else {
+                    log::warn!("Failed to load plugin library from {}: {:?}", path.display(), lib.err().unwrap());
                 }
             }
         }
