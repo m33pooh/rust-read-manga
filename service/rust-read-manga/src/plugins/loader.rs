@@ -18,20 +18,24 @@ pub fn load_plugins(config: &PluginsConfig) -> anyhow::Result<Vec<Box<dyn Plugin
         if path.is_file() {
             let extension = path.extension().and_then(|s| s.to_str());
             if extension == Some("so") || extension == Some("dll") || extension == Some("dylib") {
-                if let Ok(lib) = unsafe { Library::new(&path) } {
-                    let init_func: Result<Symbol<PluginInit>, _> =
-                        unsafe { lib.get(b"_plugin_init") };
-                    if let Ok(init) = init_func {
-                        let plugin_ptr = unsafe { init() };
-                        let plugin = unsafe { Box::from_raw(plugin_ptr) };
-                        if config.enabled.contains(&plugin.name().to_string()) {
-                            plugins.push(plugin);
+                let library = unsafe { Library::new(&path) };
+                match library {
+                    Ok(lib) => {
+                        let init_func: Result<Symbol<PluginInit>, _> =
+                            unsafe { lib.get(b"_plugin_init") };
+                        if let Ok(init) = init_func {
+                            let plugin_ptr = unsafe { init() };
+                            let plugin = unsafe { Box::from_raw(plugin_ptr) };
+                            if config.enabled.contains(&plugin.name().to_string()) {
+                                plugins.push(plugin);
+                            }
+                        } else {
+                            log::warn!("Failed to find _plugin_init symbol in {}: {:?}", path.display(), init_func.err().unwrap());
                         }
-                    } else {
-                        log::warn!("Failed to find _plugin_init symbol in {}: {:?}", path.display(), init_func.err().unwrap());
                     }
-                } else {
-                    log::warn!("Failed to load plugin library from {}: {:?}", path.display(), lib.err().unwrap());
+                    Err(e) => {
+                        log::warn!("Failed to load plugin library from {}: {:?}", path.display(), e);
+                    }
                 }
             }
         }

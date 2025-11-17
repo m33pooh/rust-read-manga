@@ -33,7 +33,7 @@ impl<'a> WorkflowRunner<'a> {
                 },
                 Err(_) => {
                     println!("Executing step: {}", name);
-                    self.execute_node(node, &mut context).await?;
+                    context = self.execute_node(node, context).await?;
                     // Save state after execution
                     let current_state: Value = serde_json::to_value(&context)?; // Convert context to JSON
                     save_step(self.db_client, self.workflow_id, name, Some(0), current_state).await?;
@@ -44,7 +44,7 @@ impl<'a> WorkflowRunner<'a> {
         Ok(())
     }
 
-    async fn execute_node(&self, node: &NodeType, context: &mut Context) -> Result<()> {
+    async fn execute_node(&self, node: &NodeType, context: Context) -> Result<Context> {
         match node {
             NodeType::InputLoader(n) => n.run(context).await,
             NodeType::ImagePreprocess(n) => n.run(context).await,
