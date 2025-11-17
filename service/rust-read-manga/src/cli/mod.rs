@@ -27,5 +27,8 @@ pub enum Commands {
     Workflow {
         /// Path to the workflow file
         file: String,
+        /// Optional database connection string
+        #[arg(long)]
+        db_connection_string: Option<String>,
     },
 }

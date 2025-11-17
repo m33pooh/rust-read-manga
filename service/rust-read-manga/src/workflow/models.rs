@@ -2,18 +2,20 @@ use crate::workflow::node_type::{
     AudioNode, DurationNode, EncoderNode, ImagePreprocessNode, InputLoaderNode, OcrNode,
     OutputWriterNode, TransitionNode,
 };
+use indexmap::IndexMap;
 use serde::Deserialize;
-use serde_ordered_map::serde_ordered_map;
+use serde_with::serde_as;
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct WorkflowFile {
-    #[serde(with = "serde_ordered_map")]
-    pub node: Vec<(String, NodeType)>,
+    #[serde_as(as = "IndexMap<_, _>")]
+    pub nodes: IndexMap<String, NodeType>,
 }
 
 #[derive(Debug)]
 pub struct Workflow {
-    pub nodes: Vec<(String, NodeType)>,
+    pub nodes: IndexMap<String, NodeType>,
 }
 
 #[derive(Debug, Deserialize)]

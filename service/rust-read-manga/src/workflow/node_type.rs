@@ -92,14 +92,14 @@ impl Node for ImagePreprocessNode {
             if self.grayscale {
                 img = DynamicImage::ImageLuma8(imageops::grayscale(&img));
             }
-            if self.auto_contrast {
-                img = DynamicImage::ImageLuma8(imageops::equalize_histogram(&img.to_luma8()));
-            }
-            if self.normalize {
-                let luma_img = img.to_luma8();
-                let normalized = imageops::normalize(&luma_img);
-                img = DynamicImage::ImageLuma8(normalized);
-            }
+            // if self.auto_contrast {
+            //     img = DynamicImage::ImageLuma8(imageops::equalize_histogram(&img.to_luma8()));
+            // }
+            // if self.normalize {
+            //     let luma_img = img.to_luma8();
+            //     let normalized = imageops::normalize(&luma_img);
+            //     img = DynamicImage::ImageLuma8(normalized);
+            // }
             if self.denoise_level > 0 {
                 img = DynamicImage::ImageRgba8(imageops::blur(&img, self.denoise_level as f32));
             }
@@ -268,7 +268,7 @@ impl Node for EncoderNode {
             .ok_or_else(|| anyhow!("No output_path in context"))?
             .clone();
 
-        let mut command = ffmpeg_sidecar::ffmpeg_command();
+        let mut command = ffmpeg_sidecar::command();
 
         if let Some(transition_type) = context.get::<TransitionType>("transition_type") {
             let transition_duration = context.get::<f32>("transition_duration").unwrap_or(0.5);
@@ -389,7 +389,7 @@ impl Node for EncoderNode {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, serde::Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TransitionType {
     Fade,
@@ -405,7 +405,7 @@ impl Default for TransitionType {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Default, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Deserialize, serde::Serialize, Default, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum Ease {
     #[default]

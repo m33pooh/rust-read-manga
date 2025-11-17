@@ -159,6 +159,6 @@ mod tests {
     fn test_apply_curve() {
         assert_eq!(apply_curve(10.0, &TimingCurve::Linear), 10.0);
         assert_eq!(apply_curve(10.0, &TimingCurve::Sqrt), 10.0_f32.sqrt());
-        assert_eq!(apply_curve(10.0, &TimingCurve::Log), (10.0 + 1.0).ln());
+        assert_eq!(apply_curve(10.0, &TimingCurve::Log), (10.0_f32 + 1.0).ln());
     }
 }
