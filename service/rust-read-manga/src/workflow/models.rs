@@ -9,7 +9,6 @@ use serde_with::serde_as;
 #[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct WorkflowFile {
-    #[serde_as(as = "IndexMap<_, _>")]
     pub node: IndexMap<String, NodeType>,
 }
 
