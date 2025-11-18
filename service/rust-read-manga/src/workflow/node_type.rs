@@ -12,7 +12,7 @@ use async_trait::async_trait;
 
 #[async_trait]
 pub trait Node {
-    async fn run(&self, context: Context) -> Result<Context>;
+    async fn run(&self, mut context: Context) -> Result<Context>;
 }
 
 #[derive(Debug, Deserialize, Default, PartialEq, Eq)]
@@ -250,7 +250,7 @@ pub struct EncoderNode {
 }
 
 impl Node for EncoderNode {
-    async fn run(&self, context: Context) -> Result<Context> {
+    async fn run(&self, mut context: Context) -> Result<Context> {
         if !ffmpeg_is_installed() {
             return Err(anyhow!("FFmpeg is not installed. Please install FFmpeg and ensure it is in your system's PATH."));
         }
